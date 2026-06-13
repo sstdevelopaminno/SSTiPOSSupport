@@ -1,0 +1,9 @@
+.vercel
+.next
+.next-local
+.next-*
+.open-next
+coverage
+tsconfig.tsbuildinfo
+*.log
+.eslintcache
