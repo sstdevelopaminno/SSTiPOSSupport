@@ -591,3 +591,8 @@ ORDER BY p.name;
 - `it_admin` keeps full IT access; `it_support` is limited to tenant, branch, contract/subscription, users/roles, sessions, shifts, audit review, and monitoring/readiness.
 - `it_support` must not hard delete, manage feature flags, manage devices, manage platform users, change IT admin roles, or edit/delete raw audit logs.
 - Keep service-role secrets server-only and never commit `.env.local`.
+### 2026-06-14 Supabase migration applied
+- Applied `supabase/migrations/20260612132854_add_it_support_platform_role.sql` against the existing shared Supabase DB `deejlitaivfnsbwqdugy`.
+- Verification confirmed `platform_role` contains `it_admin`, `it_support`, and `tenant_user`.
+- No new Supabase project/database was created.
+- DB password was used only for the CLI process and was not written to repository files.
