@@ -16,6 +16,7 @@ export type ItAdminContext = {
 };
 
 export type ItAdminPermission =
+  | "dashboard_read"
   | "tenant_manage"
   | "branch_manage"
   | "contract_manage"

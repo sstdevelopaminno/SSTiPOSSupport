@@ -330,6 +330,7 @@ export function TenantSectionConsole({
           busy={busy}
           onRoleChange={(assignment, role) => void updateRole(assignment, role)}
           onChanged={() => void loadSection()}
+          canDeleteRoles={platformRole === "it_admin"}
           setError={setError}
           setSuccess={setSuccess}
           setBusy={setBusy}
@@ -486,7 +487,8 @@ function UsersPane({
   onChanged,
   setError,
   setSuccess,
-  setBusy
+  setBusy,
+  canDeleteRoles
 }: {
   tenantId: string;
   users: UserAssignment[];
@@ -497,6 +499,7 @@ function UsersPane({
   setError: (message: string | null) => void;
   setSuccess: (message: string | null) => void;
   setBusy: (value: boolean) => void;
+  canDeleteRoles: boolean;
 }) {
   const [userId, setUserId] = useState("");
   const [branchId, setBranchId] = useState("");
@@ -595,9 +598,13 @@ function UsersPane({
                 </select>
               </td>
               <td style={tdStyle}>
-                <button type="button" className="pos-monitor-btn" disabled={busy} onClick={() => void deactivateRole(assignment)}>
-                  Deactivate
-                </button>
+                {canDeleteRoles ? (
+                  <button type="button" className="pos-monitor-btn" disabled={busy} onClick={() => void deactivateRole(assignment)}>
+                    Deactivate
+                  </button>
+                ) : (
+                  <span style={{ color: "#64748b" }}>Review/update only</span>
+                )}
               </td>
             </tr>
           ))}

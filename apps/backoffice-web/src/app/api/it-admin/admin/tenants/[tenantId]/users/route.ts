@@ -11,6 +11,39 @@ type RolePayload = {
   deactivate?: boolean;
 };
 
+type TargetProfile = {
+  id: string;
+  email: string | null;
+  platform_role: string | null;
+};
+
+type ItAdminSupabase = Awaited<ReturnType<typeof requireItAdmin>>["supabase"];
+
+async function loadTargetProfile(supabase: ItAdminSupabase, userId: string) {
+  const { data, error } = await supabase
+    .from("users_profiles")
+    .select("id,email,platform_role")
+    .eq("id", userId)
+    .maybeSingle<TargetProfile>();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data ?? null;
+}
+
+function supportTargetRestriction(actorRole: string | null | undefined, target: TargetProfile | null) {
+  if (actorRole !== "it_support") return null;
+  if (target?.platform_role === "tenant_user") return null;
+
+  return fail(
+    "support_target_restricted",
+    "it_support cannot manage platform users, IT support users, or IT admin roles.",
+    403
+  );
+}
+
 export async function GET(req: Request, context: { params: Promise<{ tenantId: string }> }) {
   try {
     const { supabase } = await requireItAdmin({ permission: "user_role_manage" });
@@ -54,6 +87,9 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
       return fail("invalid_payload", "user_id, branch_id and role are required.", 422);
     }
 
+    const targetProfile = await loadTargetProfile(supabase, userId);
+    const targetRestriction = supportTargetRestriction(auth.platformRole, targetProfile);
+    if (targetRestriction) return targetRestriction;
     await requireTenantFeature(tenantId, "user_management");
     const { data: existingTenantUser } = await supabase
       .from("user_branch_roles")
@@ -72,7 +108,7 @@ export async function POST(req: Request, context: { params: Promise<{ tenantId: 
             tenantId,
             branchId,
             actorUserId: auth.userId,
-              actorRole: auth.platformRole,
+            actorRole: auth.platformRole,
             action: "quota_blocked",
             targetTable: "user_branch_roles",
             metadata: {
@@ -155,6 +191,9 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       return fail("invalid_payload", "user_id and branch_id are required.", 422);
     }
 
+    const targetProfile = await loadTargetProfile(supabase, userId);
+    const targetRestriction = supportTargetRestriction(auth.platformRole, targetProfile);
+    if (targetRestriction) return targetRestriction;
     const { data: current } = await supabase
       .from("user_branch_roles")
       .select("id,user_id,tenant_id,branch_id,role,is_default")

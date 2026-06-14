@@ -9,11 +9,11 @@ export default async function TenantFeaturesPage({
 }) {
   const { tenantId } = await params;
   const auth = await getAuthContext({ requireBranchScope: false }).catch(() => null);
-  if (!auth || !isItAdminPlatformRole(auth.platformRole) || !hasItAdminPermission(auth.platformRole, "feature_manage")) {
+  if (!auth || !isItAdminPlatformRole(auth.platformRole) || !(hasItAdminPermission(auth.platformRole, "feature_manage") || hasItAdminPermission(auth.platformRole, "contract_manage"))) {
     return (
       <section className="surface">
         <h2>Forbidden</h2>
-        <p>Platform admin permission is required.</p>
+        <p>Contract permission is required.</p>
       </section>
     );
   }

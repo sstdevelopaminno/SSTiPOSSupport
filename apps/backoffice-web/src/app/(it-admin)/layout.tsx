@@ -6,31 +6,31 @@ import { getCurrentLanguage, t, type Language } from "@/lib/i18n";
 import { hasItAdminPermission, isItAdminPlatformRole, type ItAdminPermission } from "@/lib/it-admin-guard";
 
 const nav = [
-  { href: "/it-admin", labels: { th: "แดชบอร์ดไอที", en: "IT Dashboard" }, permission: "monitoring_read" },
+  { href: "/it-admin", labels: { th: "แดชบอร์ดไอที", en: "IT Dashboard" }, permission: "dashboard_read" },
   { href: "/tenants", labels: { th: "การจัดการผู้เช่า", en: "Tenant Management" }, permission: "tenant_manage" },
   { href: "/tenants#branches", labels: { th: "การจัดการสาขา", en: "Branch Management" }, permission: "branch_manage" },
   {
     href: "/it-admin/packages",
-    labels: { th: "สัญญาแพ็กเกจ/สมาชิก", en: "Contracts / Subscriptions" },
+    labels: { th: "สัญญาแพ็กเกจ/การสมัครสมาชิก", en: "Contracts / Subscriptions" },
     permission: "package_read"
   },
-  { href: "/tenants#users", labels: { th: "ผู้ใช้/บทบาท", en: "Users / Roles" }, permission: "user_role_manage" },
-  { href: "/tenants#sessions", labels: { th: "เซสชันใช้งาน", en: "Active Sessions" }, permission: "session_manage" },
+  { href: "/tenants#users", labels: { th: "การควบคุมผู้ใช้/บทบาท", en: "Users / Roles" }, permission: "user_role_manage" },
+  { href: "/tenants#sessions", labels: { th: "เซสชันที่ใช้งานอยู่", en: "Active Sessions" }, permission: "session_manage" },
   { href: "/tenants#shifts", labels: { th: "กะการทำงาน", en: "Shifts" }, permission: "shift_manage" },
-  { href: "/audit-logs", labels: { th: "Audit review", en: "Audit Review" }, permission: "audit_read" },
+  { href: "/audit-logs", labels: { th: "บันทึกการตรวจสอบ", en: "Audit Logs" }, permission: "audit_read" },
   {
     href: "/it-admin/monitoring",
-    labels: { th: "ตรวจสอบ/ความพร้อมใช้งาน", en: "Monitoring / Readiness" },
+    labels: { th: "มุมมองการตรวจสอบ/ความพร้อมใช้งาน", en: "Monitoring / Readiness" },
     permission: "monitoring_read"
   },
   {
     href: "/tenants#features",
-    labels: { th: "Feature flags/สาขา", en: "Feature Flags / Branch Overrides" },
+    labels: { th: "แฟล็กคุณสมบัติ/การแทนที่สาขา", en: "Feature Flags / Branch Overrides" },
     permission: "feature_manage"
   },
   {
     href: "/tenants#devices",
-    labels: { th: "อุปกรณ์/ลงทะเบียน", en: "Devices / Registration" },
+    labels: { th: "การควบคุมอุปกรณ์/การลงทะเบียน", en: "Devices / Registration" },
     permission: "device_manage"
   },
   {
@@ -38,11 +38,14 @@ const nav = [
     labels: { th: "อุปกรณ์จอลูกค้า", en: "Customer Display Devices" },
     permission: "customer_display_manage"
   },
-  { href: "/it-admin/platform-users", labels: { th: "Platform users", en: "Platform Users" }, permission: "platform_user_manage" },
-  { href: "/it-admin/settings/language", labels: { th: "Settings", en: "Settings" }, permission: "settings_manage" }
+  { href: "/it-admin/platform-users", labels: { th: "ผู้ใช้ระบบกลาง", en: "Platform Users" }, permission: "platform_user_manage" },
+  { href: "/it-admin/settings/language", labels: { th: "ตั้งค่า", en: "Settings" }, permission: "settings_manage" }
 ] as const;
 
-function navLabel(item: (typeof nav)[number], lang: Language) {
+function navLabel(item: (typeof nav)[number], lang: Language, role: string | null | undefined) {
+  if (item.permission === "audit_read" && role === "it_support") {
+    return lang === "th" ? "บันทึกการตรวจสอบ (Review)" : "Audit Review";
+  }
   return item.labels[lang] ?? item.labels.en;
 }
 
@@ -67,7 +70,7 @@ export default async function ItAdminLayout({ children }: { children: ReactNode 
     <ItSupportShell
       nav={allowedNav.map((item) => ({
         href: item.href,
-        label: navLabel(item, lang),
+        label: navLabel(item, lang, auth.platformRole),
         permission: item.permission
       }))}
       roleLabel={roleLabel}

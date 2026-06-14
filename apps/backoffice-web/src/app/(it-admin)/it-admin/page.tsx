@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getAuthContext } from "@/lib/auth-context";
 import { getCurrentLanguage } from "@/lib/i18n";
 import { hasItAdminPermission, type ItAdminPermission } from "@/lib/it-admin-guard";
@@ -6,7 +7,10 @@ import { hasItAdminPermission, type ItAdminPermission } from "@/lib/it-admin-gua
 export default async function ItAdminHomePage() {
   const lang = await getCurrentLanguage();
   const auth = await getAuthContext({ requireBranchScope: false });
-  const roleLabel = auth.platformRole === "it_admin" ? "IT Admin" : "IT Support";
+
+  if (auth.platformRole === "it_support") {
+    redirect("/tenants");
+  }
 
   const kpis = [
     {
@@ -20,12 +24,12 @@ export default async function ItAdminHomePage() {
       detail: lang === "th" ? "ตรวจสถานะสาขาและ feature" : "Branch and feature status"
     },
     {
-      label: lang === "th" ? "เซสชันใช้งาน" : "Active sessions",
+      label: lang === "th" ? "เซสชันที่ใช้งานอยู่" : "Active sessions",
       value: "Live",
       detail: lang === "th" ? "ติดตาม POS sessions" : "Track POS sessions"
     },
     {
-      label: "Audit review",
+      label: lang === "th" ? "บันทึกตรวจสอบ" : "Audit review",
       value: "Review",
       detail: lang === "th" ? "ตรวจสอบ activity สำคัญ" : "Review important activity"
     }
@@ -34,31 +38,31 @@ export default async function ItAdminHomePage() {
   const actions = [
     {
       href: "/tenants",
-      title: "Tenant support",
-      body: lang === "th" ? "เปิด tenant, branch, user role, session และ shift view" : "Open tenant, branch, role, session, and shift views",
+      title: lang === "th" ? "การจัดการผู้เช่า" : "Tenant support",
+      body: lang === "th" ? "เปิด tenant, branch, user role, session และ shift" : "Open tenant, branch, role, session, and shift views",
       permission: "tenant_manage"
     },
     {
       href: "/it-admin/packages",
-      title: "Contracts and packages",
-      body: lang === "th" ? "ตรวจแพ็กเกจและ quote สำหรับ subscription" : "Review package catalog and subscription quote",
+      title: lang === "th" ? "สัญญาและแพ็กเกจ" : "Contracts and packages",
+      body: lang === "th" ? "ตรวจแพ็กเกจและ subscription" : "Review package catalog and subscription quote",
       permission: "package_read"
     },
     {
       href: "/audit-logs",
-      title: "Audit review",
-      body: lang === "th" ? "ค้นหา audit logs แบบ read-only" : "Search read-only audit logs",
+      title: lang === "th" ? "บันทึกตรวจสอบ" : "Audit review",
+      body: lang === "th" ? "ค้นหา audit logs แบบอ่าน/ตรวจสอบ" : "Search read-only audit logs",
       permission: "audit_read"
     },
     {
       href: "/it-admin/monitoring",
-      title: "Monitoring readiness",
+      title: lang === "th" ? "ตรวจสอบความพร้อม" : "Monitoring readiness",
       body: lang === "th" ? "ดู health, queues และ readiness ของระบบ" : "View health, queues, and readiness",
       permission: "monitoring_read"
     },
     {
       href: "/it-admin/platform-users",
-      title: "Platform users",
+      title: lang === "th" ? "ผู้ใช้ระบบกลาง" : "Platform users",
       body: lang === "th" ? "จัดการผู้ใช้ platform สำหรับ IT Admin" : "Manage platform users for IT Admin",
       permission: "platform_user_manage"
     }
@@ -75,11 +79,11 @@ export default async function ItAdminHomePage() {
     <div className="it-support-dashboard">
       <section className="it-support-hero-card">
         <div>
-          <p className="it-support-kicker">{roleLabel}</p>
+          <p className="it-support-kicker">IT Admin</p>
           <h2>SSTiPOS Support Console</h2>
           <p>
             {lang === "th"
-              ? "ศูนย์ปฏิบัติการสำหรับตรวจ readiness, support tenant, และดูแล platform อย่างปลอดภัย"
+              ? "ศูนย์ปฏิบัติการสำหรับตรวจ readiness, support tenant และดูแล platform อย่างปลอดภัย"
               : "Operations hub for readiness checks, tenant support, and secure platform oversight."}
           </p>
         </div>

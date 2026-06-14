@@ -496,3 +496,11 @@ Verification for this UI pass:
 - Documentation updates should be pushed to GitHub so the planning chat can pull current repo context before preparing the next Codex command.
 - Each handoff should report current status, changed files, verification results, risks, and next recommended steps.
 - Do not run Vercel, deploy, or push to main unless the user explicitly asks for deployment/main push.
+
+### 2026-06-14 SSTiPOS Support split status
+- SSTiPOS Support is developed in the separate `SSTiPOSSupport` repo/branch while POS remains in `POS-Preview`.
+- Both POS and SSTiPOS Support use the same existing Supabase project/database; do not create a new Supabase project.
+- Vercel deploys are separated by project: POS uses the POS project, SSTiPOS Support uses the `sstipos-support` project with `APP_SURFACE=it_admin`.
+- `it_admin` keeps full IT access; `it_support` is limited to tenant, branch, contract/subscription, users/roles, sessions, shifts, audit review, and monitoring/readiness.
+- `it_support` must not hard delete, manage feature flags, manage devices, manage platform users, change IT admin roles, or edit/delete raw audit logs.
+- Keep service-role secrets server-only and never commit `.env.local`.

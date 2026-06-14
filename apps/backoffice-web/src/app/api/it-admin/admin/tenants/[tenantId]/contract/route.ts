@@ -173,7 +173,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
       await appendAuditLog({
         tenantId,
         actorUserId: auth.userId,
-        actorRole: "it_admin",
+        actorRole: auth.platformRole,
         action: "plan_changed",
         targetTable: "tenant_subscription_contracts",
         targetId: updated.id,
@@ -191,7 +191,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
         await appendAuditLog({
           tenantId,
           actorUserId: auth.userId,
-          actorRole: "it_admin",
+          actorRole: auth.platformRole,
           action: "contract_suspended",
           targetTable: "tenant_subscription_contracts",
           targetId: updated.id,
@@ -208,7 +208,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
         await appendAuditLog({
           tenantId,
           actorUserId: auth.userId,
-          actorRole: "it_admin",
+          actorRole: auth.platformRole,
           action: "contract_reactivated",
           targetTable: "tenant_subscription_contracts",
           targetId: updated.id,

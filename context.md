@@ -583,3 +583,11 @@ ORDER BY p.name;
 - Latest IT audit details are in `docs/AI-HANDOFF-IT-BACKOFFICE-2026-06-12.md`.
 - P1 implementation candidates: tenant package/contract/`core_pos_sales` readiness, branch feature override scope validation, user role branch/user validation, contract plan validation, safer IT admin public errors, and targeted permission/scope/quota tests.
 - No Vercel deploy should be run for this audit/development planning pass.
+
+### 2026-06-14 SSTiPOS Support split status
+- SSTiPOS Support is developed in the separate `SSTiPOSSupport` repo/branch while POS remains in `POS-Preview`.
+- Both POS and SSTiPOS Support use the same existing Supabase project/database; do not create a new Supabase project.
+- Vercel deploys are separated by project: POS uses the POS project, SSTiPOS Support uses the `sstipos-support` project with `APP_SURFACE=it_admin`.
+- `it_admin` keeps full IT access; `it_support` is limited to tenant, branch, contract/subscription, users/roles, sessions, shifts, audit review, and monitoring/readiness.
+- `it_support` must not hard delete, manage feature flags, manage devices, manage platform users, change IT admin roles, or edit/delete raw audit logs.
+- Keep service-role secrets server-only and never commit `.env.local`.
