@@ -9,6 +9,11 @@ const securityHeaders = [
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }
 ];
 
+const supportCleanupHeaders = [
+  { key: "Clear-Site-Data", value: "\"cache\", \"storage\"" },
+  { key: "Cache-Control", value: "no-store, no-cache, must-revalidate, proxy-revalidate" }
+];
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   distDir: process.env.NEXT_DIST_DIR ?? ".next",
@@ -32,9 +37,21 @@ const nextConfig: NextConfig = {
         source: "/sw.js",
         headers: [
           ...securityHeaders,
-          { key: "Cache-Control", value: "no-store, no-cache, must-revalidate, proxy-revalidate" },
+          ...supportCleanupHeaders,
           { key: "Service-Worker-Allowed", value: "/" }
         ]
+      },
+      {
+        source: "/",
+        headers: [...securityHeaders, ...supportCleanupHeaders]
+      },
+      {
+        source: "/it-admin/login",
+        headers: [...securityHeaders, ...supportCleanupHeaders]
+      },
+      {
+        source: "/login/store",
+        headers: [...securityHeaders, ...supportCleanupHeaders]
       },
       {
         source: "/(.*)",

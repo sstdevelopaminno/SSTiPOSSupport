@@ -43,7 +43,7 @@ function matchesPrefix(pathname: string, prefixes: string[]): boolean {
 function redirectToHost(request: NextRequest, host: string): NextResponse {
   const url = request.nextUrl.clone();
   url.host = host;
-  return NextResponse.redirect(url);
+  return withSupportCleanupHeaders(NextResponse.redirect(url));
 }
 
 function redirectToSurfaceLogin(request: NextRequest, surface: Exclude<AppSurface, "all">): NextResponse {
@@ -51,7 +51,7 @@ function redirectToSurfaceLogin(request: NextRequest, surface: Exclude<AppSurfac
   url.pathname = surface === "pos" ? "/login/store" : "/it-admin/login";
   url.search = "";
   url.searchParams.set("blocked", surface === "pos" ? "it_admin_surface" : "pos_surface");
-  return NextResponse.redirect(url);
+  return surface === "it_admin" ? withSupportCleanupHeaders(NextResponse.redirect(url)) : NextResponse.redirect(url);
 }
 
 function redirectToPosLogin(request: NextRequest): NextResponse {
@@ -68,6 +68,12 @@ function hasPosSession(request: NextRequest): boolean {
 
 function hasSupabaseSession(request: NextRequest): boolean {
   return request.cookies.getAll().some((cookie) => cookie.name.startsWith("sb-"));
+}
+
+function withSupportCleanupHeaders(response: NextResponse): NextResponse {
+  response.headers.set("Clear-Site-Data", "\"cache\", \"storage\"");
+  response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  return response;
 }
 
 export function proxy(request: NextRequest) {
@@ -90,14 +96,14 @@ export function proxy(request: NextRequest) {
       if (pathname === "/") {
         const url = request.nextUrl.clone();
         url.pathname = "/it-admin/login";
-        return NextResponse.redirect(url);
+        return withSupportCleanupHeaders(NextResponse.redirect(url));
       }
       if (pathname === "/it-admin" && !hasSupabaseSession(request)) {
         const url = request.nextUrl.clone();
         url.pathname = "/it-admin/login";
         url.search = "";
         url.searchParams.set("state", "session_expired");
-        return NextResponse.redirect(url);
+        return withSupportCleanupHeaders(NextResponse.redirect(url));
       }
       if (matchesPrefix(pathname, POS_PATH_PREFIXES)) {
         return redirectToSurfaceLogin(request, "it_admin");

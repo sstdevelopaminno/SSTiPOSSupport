@@ -9,7 +9,7 @@ const isSupportSurface = appSurface !== "pos";
 export const metadata: Metadata = {
   title: isSupportSurface ? "SSTiPOS Support" : "SSTiPOS",
   description: isSupportSurface ? "SSTiPOS Support IT operations console" : "Multi-tenant POS back office and IT admin",
-  manifest: "/manifest.webmanifest",
+  ...(isSupportSurface ? {} : { manifest: "/manifest.webmanifest" }),
   icons: {
     icon: [
       {
@@ -21,11 +21,15 @@ export const metadata: Metadata = {
     shortcut: "/icons/sstipos-browser-icon.png",
     apple: "/icons/sstipos-browser-icon.png",
   },
-  appleWebApp: {
-    capable: true,
-    title: isSupportSurface ? "SSTiPOS Support" : "SSTiPOS",
-    statusBarStyle: "default",
-  },
+  ...(isSupportSurface
+    ? {}
+    : {
+        appleWebApp: {
+          capable: true,
+          title: "SSTiPOS",
+          statusBarStyle: "default" as const,
+        },
+      }),
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
