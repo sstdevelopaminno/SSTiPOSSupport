@@ -336,3 +336,10 @@ No Vercel deploy should be run for this planning/audit pass.
   - Support `/login/store` redirects to `/it-admin/login?blocked=pos_surface`.
   - Support `/it-admin/login` returns `200`.
   - POS `https://sstipos-ten.vercel.app/login/store` still returns `200`.
+
+### 2026-06-17 Support stale service worker cleanup
+- Root cause suspected for Chrome showing a blank loading tab on `sstipos-support.vercel.app`: the Support domain still served an older POS Preview service worker that cached `/` and POS shell assets.
+- Replaced `public/sw.js` with a self-removing cleanup worker that deletes Cache Storage and unregisters itself.
+- Updated `PwaBootstrap` to delete Cache Storage after unregistering any existing service workers.
+- Added `no-store` headers for `/sw.js` so browsers fetch the cleanup worker instead of reusing the old POS cache.
+- This is specific to the Support project; POS PWA/offline details can be revisited later in the POS repo.

@@ -617,3 +617,11 @@ ORDER BY p.name;
   - `https://sstipos-support.vercel.app/login/store` redirects to `/it-admin/login?blocked=pos_surface`.
   - `https://sstipos-support.vercel.app/it-admin/login` returns `200`.
   - `https://sstipos-ten.vercel.app/login/store` remains the POS login and returns `200`.
+
+### 2026-06-17 Support blank-loading browser cleanup
+- User reported Chrome stayed blank/spinning at `sstipos-support.vercel.app` even though production HTTP checks returned `200`/`307` and Vercel logs were clean.
+- Investigation found `apps/backoffice-web/public/sw.js` still contained the old POS shell cache worker (`sstipos-shell-v2`) that cached `/`, `manifest.webmanifest`, and POS logo assets.
+- The Support repo now serves a self-removing `sw.js` that deletes all Cache Storage entries, unregisters itself, and reloads controlled windows.
+- `PwaBootstrap` also deletes Cache Storage after unregistering service workers when the app loads.
+- `apps/backoffice-web/next.config.ts` sends `Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate` for `/sw.js`.
+- If a user's browser is still stuck before it can fetch the cleanup worker, ask them to open DevTools > Application > Storage > Clear site data for `sstipos-support.vercel.app`, then reload `https://sstipos-support.vercel.app/it-admin/login`.
