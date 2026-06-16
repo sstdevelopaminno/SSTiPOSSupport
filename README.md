@@ -343,4 +343,4 @@ No Vercel deploy should be run for this planning/audit pass.
 - Updated `PwaBootstrap` to delete Cache Storage after unregistering any existing service workers.
 - Added `no-store` headers for `/sw.js` so browsers fetch the cleanup worker instead of reusing the old POS cache.
 - This is specific to the Support project; POS PWA/offline details can be revisited later in the POS repo.
-- Hardening follow-up: Support no longer advertises the PWA manifest/apple web app metadata, and Support entry responses now send `Clear-Site-Data: "cache", "storage"` plus no-store cache headers so old POS Preview browser state is cleared when the Support domain is opened.
+- Hardening follow-up: Support no longer advertises the PWA manifest/apple web app metadata, the file-based `app/manifest.ts` route was removed from this Support repo, and Support entry responses now send `Clear-Site-Data: "cache", "storage"` plus no-store cache headers so old POS Preview browser state is cleared when the Support domain is opened.
