@@ -66,6 +66,10 @@ function hasPosSession(request: NextRequest): boolean {
   return Boolean(request.cookies.get(sessionIdName)?.value || request.cookies.get(handoffName)?.value);
 }
 
+function hasSupabaseSession(request: NextRequest): boolean {
+  return request.cookies.getAll().some((cookie) => cookie.name.startsWith("sb-"));
+}
+
 export function proxy(request: NextRequest) {
   const surface = appSurface();
   const pathname = request.nextUrl.pathname;
@@ -85,7 +89,14 @@ export function proxy(request: NextRequest) {
     if (surface === "it_admin") {
       if (pathname === "/") {
         const url = request.nextUrl.clone();
-        url.pathname = "/it-admin";
+        url.pathname = "/it-admin/login";
+        return NextResponse.redirect(url);
+      }
+      if (pathname === "/it-admin" && !hasSupabaseSession(request)) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/it-admin/login";
+        url.search = "";
+        url.searchParams.set("state", "session_expired");
         return NextResponse.redirect(url);
       }
       if (matchesPrefix(pathname, POS_PATH_PREFIXES)) {
