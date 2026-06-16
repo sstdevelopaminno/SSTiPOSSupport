@@ -600,3 +600,20 @@ ORDER BY p.name;
 - Verification confirmed `platform_role` contains `it_admin`, `it_support`, and `tenant_user`.
 - No new Supabase project/database was created.
 - DB password was used only for the CLI process and was not written to repository files.
+
+### 2026-06-17 Support env and login verification
+- Vercel project `sstipos-support` was relinked locally and confirmed separate from the POS `sstipos` project.
+- Production env for `sstipos-support` now includes the Supabase URL, anon key, service-role key, primary Supabase aliases, and POS session cookie settings copied from the POS local env source. Secret values were not written to source files or logs.
+- `APP_SURFACE=it_admin` remains required for `sstipos-support`.
+- Production redeploy completed after env sync and the alias `https://sstipos-support.vercel.app` points to the new Support deployment.
+- `itadmin@sstipos.local` was verified against the shared Supabase project:
+  - Auth user exists.
+  - Email is confirmed.
+  - `app_metadata.platform_role` is `it_admin`.
+  - `users_profiles.platform_role` is `it_admin`.
+  - `users_profiles.is_active` is true.
+- Routing separation checks:
+  - `https://sstipos-support.vercel.app/` redirects to `/it-admin/login`.
+  - `https://sstipos-support.vercel.app/login/store` redirects to `/it-admin/login?blocked=pos_surface`.
+  - `https://sstipos-support.vercel.app/it-admin/login` returns `200`.
+  - `https://sstipos-ten.vercel.app/login/store` remains the POS login and returns `200`.

@@ -324,3 +324,15 @@ No Vercel deploy should be run for this planning/audit pass.
 - Production alias: `https://sstipos-support.vercel.app`
 - HTTP checks returned `200` for `/` and `/it-admin/login`.
 - Post-deploy error scan showed one unauthenticated `HEAD /it-admin` redirect log; this is likely auth-guard noise, but it should be downgraded from error-level logging in a future cleanup if it affects monitoring.
+
+### 2026-06-17 SSTiPOS Support production env sync
+- Confirmed the `sstipos-support` Vercel project is separate from the POS `sstipos` project/domain.
+- Synced the required Supabase runtime env vars from the POS local env source into Vercel production for `sstipos-support` so IT Support uses the same Supabase project/database as POS.
+- Synced only variable names into documentation; secret values were not printed or committed.
+- Redeployed production after the env sync. Production alias remains `https://sstipos-support.vercel.app`.
+- Verified `itadmin@sstipos.local` exists in Supabase Auth, is email-confirmed, has `app_metadata.platform_role=it_admin`, and has an active `users_profiles` row with `platform_role=it_admin`.
+- Verified HTTP routing separation after deploy:
+  - Support root redirects to `/it-admin/login`.
+  - Support `/login/store` redirects to `/it-admin/login?blocked=pos_surface`.
+  - Support `/it-admin/login` returns `200`.
+  - POS `https://sstipos-ten.vercel.app/login/store` still returns `200`.
