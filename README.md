@@ -344,3 +344,5 @@ No Vercel deploy should be run for this planning/audit pass.
 - Added `no-store` headers for `/sw.js` so browsers fetch the cleanup worker instead of reusing the old POS cache.
 - This is specific to the Support project; POS PWA/offline details can be revisited later in the POS repo.
 - Hardening follow-up: Support no longer advertises the PWA manifest/apple web app metadata, the file-based `app/manifest.ts` route was removed from this Support repo, and Support entry responses now send `Clear-Site-Data: "cache", "storage"` plus no-store cache headers so old POS Preview browser state is cleared when the Support domain is opened.
+- Production redeploy after removing `app/manifest.ts`: `https://sstipos-support-a9k14hunr-sstdevelopaminnos-projects.vercel.app`, aliased to `https://sstipos-support.vercel.app`.
+- Post-deploy verification: `/` redirects to `/it-admin/login` with `Clear-Site-Data`, `/it-admin/login` returns `200` without a manifest link, `/sw.js` returns the cleanup worker with no-store headers, and `/manifest.webmanifest` returns `404`.

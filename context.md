@@ -625,4 +625,6 @@ ORDER BY p.name;
 - `PwaBootstrap` also deletes Cache Storage after unregistering service workers when the app loads.
 - `apps/backoffice-web/next.config.ts` sends `Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate` for `/sw.js`.
 - Follow-up hardening removed Support manifest/apple web app metadata, removed the file-based `app/manifest.ts` route from this Support repo, and added `Clear-Site-Data: "cache", "storage"` with no-store cache headers to `/`, `/it-admin/login`, `/login/store`, `/sw.js`, and Support proxy redirects.
+- Production redeploy after removing `app/manifest.ts`: `https://sstipos-support-a9k14hunr-sstdevelopaminnos-projects.vercel.app`, aliased to `https://sstipos-support.vercel.app`.
+- Post-deploy verification: `/` redirects to `/it-admin/login` with `Clear-Site-Data`, `/it-admin/login` returns `200` without a manifest link, `/sw.js` returns the cleanup worker with no-store headers, and `/manifest.webmanifest` returns `404`.
 - If a user's browser is still stuck before it can fetch the cleanup worker, ask them to open DevTools > Application > Storage > Clear site data for `sstipos-support.vercel.app`, then reload `https://sstipos-support.vercel.app/it-admin/login`.
