@@ -14,9 +14,9 @@ function resolvePosSessionCookieNames() {
 }
 
 function appSurface(): AppSurface {
-  const raw = String(process.env.APP_SURFACE ?? "all").trim().toLowerCase();
+  const raw = String(process.env.APP_SURFACE ?? "it_admin").trim().toLowerCase();
   if (raw === "pos" || raw === "it_admin" || raw === "all") return raw;
-  return "all";
+  return "it_admin";
 }
 
 function parseHosts(raw: string | undefined): string[] {

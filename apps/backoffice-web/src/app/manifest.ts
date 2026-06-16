@@ -1,12 +1,15 @@
 import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
+  const surface = String(process.env.APP_SURFACE ?? "it_admin").trim().toLowerCase();
+  const isSupportSurface = surface !== "pos";
+
   return {
-    id: "/?app=sstipos",
-    name: "SSTiPOS",
-    short_name: "SSTiPOS",
-    description: "SSTiPOS login + POS web app",
-    start_url: "/login/store",
+    id: isSupportSurface ? "/?app=sstipos-support" : "/?app=sstipos",
+    name: isSupportSurface ? "SSTiPOS Support" : "SSTiPOS",
+    short_name: isSupportSurface ? "SST Support" : "SSTiPOS",
+    description: isSupportSurface ? "SSTiPOS Support IT operations console" : "SSTiPOS login + POS web app",
+    start_url: isSupportSurface ? "/it-admin/login" : "/login/store",
     scope: "/",
     display: "standalone",
     orientation: "portrait",

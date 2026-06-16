@@ -9,9 +9,18 @@ This repository is split from `sstdevelopaminno/POS-Preview` so IT Backoffice de
 - Local command: `pnpm dev:it-support`
 - Local URL: `http://localhost:30000/it-admin/login`
 - Required Vercel surface: `APP_SURFACE=it_admin`
+- Support repo fallback: when `APP_SURFACE` is missing, this repo now defaults to the IT Support surface, not POS/Sales.
 - Database: same existing Supabase project/database as POS. Do not create a new Supabase project.
 
 Keep `packages/*` and `supabase/migrations/*` synchronized with `POS-Preview` until shared packages and migrations are published through a formal release process.
+
+## 2026-06-17 Surface Separation Audit
+
+- `sstdevelopaminno/SSTiPOS` is the POS/Sales codebase and should continue to default to `/login/store` and POS runtime surfaces.
+- `sstdevelopaminno/SSTiPOSSupport` is the IT Support codebase and must default to `/it-admin/login`.
+- Root `package.json`, `apps/backoffice-web/package.json`, `.env.example`, root page redirect, login root redirect, metadata, manifest, and `src/proxy.ts` have been hardened so missing `APP_SURFACE` no longer falls back to POS/Sales in this Support repo.
+- The Support deployment still needs the Vercel project environment variable `APP_SURFACE=it_admin`; the code default is a safety net, not a replacement for explicit production configuration.
+- POS/Sales code, POS APIs, and shared migrations still exist in this repo until the deeper physical split is finished. They are blocked from the Support public surface by `APP_SURFACE=it_admin` and server-side IT role guards.
 
 ## Source Context
 
@@ -48,8 +57,8 @@ POS/Sales and IT Backoffice must run as separate Vercel Projects and separate do
 - IT Backoffice: Vercel Project `sstipos-support`, display name `SSTiPOS Support`, domain example `admin.<domain>` or `it.<domain>`, `APP_SURFACE=it_admin`.
 - Local full-surface development only: `APP_SURFACE=all`.
 - Local IT Backoffice preview: run with `APP_SURFACE=it_admin` and `PORT=30000`, then open `http://localhost:30000/it-admin/login`.
-- POS local command: `pnpm dev` or `pnpm dev:pos`.
-- IT local command: `pnpm dev:it-support`.
+- POS local command in the POS repo: `pnpm dev` or `pnpm dev:pos`.
+- IT local command in this Support repo: `pnpm dev` or `pnpm dev:it-support`.
 
 The IT Backoffice uses a separate Vercel Project/domain, but it must use the same Supabase project/database as POS. Do not create a separate Supabase project for IT Backoffice. Configure the IT Vercel project with the same Supabase URL, anon key, server-only service role key, and any required auth/session secrets used by the POS project.
 

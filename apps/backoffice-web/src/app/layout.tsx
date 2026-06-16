@@ -3,9 +3,12 @@ import type { ReactNode } from "react";
 import { PwaBootstrap } from "@/components/pwa/pwa-bootstrap";
 import "./globals.css";
 
+const appSurface = String(process.env.APP_SURFACE ?? "it_admin").trim().toLowerCase();
+const isSupportSurface = appSurface !== "pos";
+
 export const metadata: Metadata = {
-  title: "SSTiPOS",
-  description: "Multi-tenant POS back office and IT admin",
+  title: isSupportSurface ? "SSTiPOS Support" : "SSTiPOS",
+  description: isSupportSurface ? "SSTiPOS Support IT operations console" : "Multi-tenant POS back office and IT admin",
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -20,7 +23,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "SSTiPOS",
+    title: isSupportSurface ? "SSTiPOS Support" : "SSTiPOS",
     statusBarStyle: "default",
   },
 };

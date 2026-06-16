@@ -1,10 +1,12 @@
 # SST iPOS Project Context (Authoritative Handoff)
 
-Last updated: 2026-06-12
-Workspace: `e:\POS Preview`
+Last updated: 2026-06-17
+Workspace: `e:\SSTiPOSSupport`
 
 This file is the primary context handoff for future GPT/Codex runs.
 Read this file before making any code changes.
+
+Support repo note: this checkout is `sstdevelopaminno/SSTiPOSSupport`, not the POS/Sales repo. The default runtime surface for this repo is IT Support (`APP_SURFACE=it_admin`) and the root entry point must be `/it-admin/login`. Do not restore POS/Sales defaults here unless the user explicitly asks for POS work in the POS repo.
 
 ## 1) Product and System Scope
 
@@ -40,12 +42,14 @@ The IT Backoffice must not share the same public URL as POS/Sales. POS users mus
 - Existing POS session-cookie protection for `/preview/pos/*` is preserved when `APP_SURFACE=pos` or `APP_SURFACE=all`.
 
 Repository separation target as of 2026-06-14:
-- POS source folder/repo: `E:\POS Preview`, `sstdevelopaminno/POS-Preview`.
+- POS source folder/repo: `E:\POS Preview`, `sstdevelopaminno/POS-Preview`; the current GitHub POS repo provided by the user is `sstdevelopaminno/SSTiPOS`.
 - IT Support source folder/repo: `E:\SSTiPOSSupport`, `sstdevelopaminno/SSTiPOSSupport`.
-- POS local command remains `pnpm dev` or `pnpm dev:pos` on port `3000`.
-- IT local command is `pnpm dev:it-support` on port `30000`.
+- POS local command remains `pnpm dev` or `pnpm dev:pos` on port `3000` in the POS repo.
+- IT local command is `pnpm dev` or `pnpm dev:it-support` on port `30000` in this Support repo.
 - Shared packages and `supabase/migrations/*` must be kept synchronized in both repositories until a package/migration release process replaces direct copying.
 - POS Vercel root deploy uses root `vercel.json` with output directory `apps/backoffice-web/.next`; IT projects with Root Directory `apps/backoffice-web` can continue using the app-level `apps/backoffice-web/vercel.json`.
+
+2026-06-17 audit/fix: `SSTiPOSSupport` previously still had POS fallback behavior in package scripts, `.env.example`, `/`, `/login`, metadata, manifest, and `src/proxy.ts`. These defaults now point to IT Support so a missing `APP_SURFACE` cannot make the Support production URL show the POS store login. Production Vercel should still set `APP_SURFACE=it_admin` explicitly.
 
 This proxy is not the only security boundary. IT admin server layout and API guards still resolve user/role server-side and only allow `it_admin` or `it_support`. POS APIs must continue to derive POS session, tenant, branch, device, role, permission, contract, and feature state server-side.
 

@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node scripts/dev-safe.mjs",
+    "dev": "node scripts/dev-it-support.mjs",
+    "dev:pos": "node scripts/dev-pos.mjs",
     "dev:it-support": "node scripts/dev-it-support.mjs",
     "build": "node --max-old-space-size=4096 node_modules/next/dist/bin/next build --webpack",
     "start": "next start -p 3000",
