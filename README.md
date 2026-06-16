@@ -301,3 +301,17 @@ No Vercel deploy should be run for this planning/audit pass.
 - Verification confirmed `platform_role` contains `it_admin`, `it_support`, and `tenant_user`.
 - No new Supabase project/database was created.
 - DB password was used only for the CLI process and was not written to repository files.
+
+### 2026-06-16 GitHub main sync and Vercel production deploy
+- Root cause checked: GitHub `main` still pointed to the initial README-only commit while the full SSTiPOS Support code was on `split/it-support-project`.
+- Fast-forwarded `main` to `split/it-support-project` and pushed `main` to `sstdevelopaminno/SSTiPOSSupport`.
+- Added commit `18d4de6` to align `apps/backoffice-web/next-env.d.ts` with the current Next.js build route type output path.
+- Verification before deploy:
+  - `pnpm --filter backoffice-web typecheck` passed.
+  - ESLint passed when run without cache; cached lint was blocked locally by sandbox/write permission on `.eslintcache`.
+  - Local production build produced `.next`, but the local command timed out before returning a final exit code. Vercel production build completed successfully.
+- Deployed production with Vercel CLI to project `sstipos-support`.
+- Production deployment: `https://sstipos-support-d1317t7r3-sstdevelopaminnos-projects.vercel.app`
+- Production alias: `https://sstipos-support.vercel.app`
+- HTTP checks returned `200` for `/` and `/it-admin/login`.
+- Post-deploy error scan showed one unauthenticated `HEAD /it-admin` redirect log; this is likely auth-guard noise, but it should be downgraded from error-level logging in a future cleanup if it affects monitoring.
