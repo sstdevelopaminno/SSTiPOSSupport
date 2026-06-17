@@ -215,9 +215,11 @@ pnpm dev
 6. Open:
 
 ```text
-http://localhost:3000/login/store
-http://localhost:3000/preview/pos
+http://localhost:30000/it-admin/login
 ```
+
+In this Support repository, `pnpm dev` defaults to `APP_SURFACE=it_admin` and `PORT=30000`.
+POS/Sales local routes belong in the POS repository, not this Support runtime.
 
 ## Demo Login Pointers
 
@@ -254,6 +256,13 @@ Manual POS QA should cover:
 - Receipt preview/print
 - Stock deduction
 - Table QR ordering when touched
+
+For Support-only changes, verify the IT surface instead:
+
+- `/` redirects to `/it-admin/login`
+- `/it-admin/login` loads on the Support project/domain
+- POS routes such as `/login/store` redirect away from the Support surface
+- `/sw.js` serves the cleanup worker with no-store cache headers
 
 ## Key Documents
 
