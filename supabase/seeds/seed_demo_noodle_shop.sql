@@ -76,22 +76,42 @@ values
     '00000000-0000-0000-0000-000000000000',
     'authenticated',
     'authenticated',
-    'itadmin@platform.local',
-    crypt('ITAdmin#1234', gen_salt('bf')),
+    'itadmin@sstipos.local',
+    crypt('182536', gen_salt('bf')),
     now(),
     now(),
     now(),
-    '{"provider":"email","providers":["email"]}'::jsonb,
-    '{"full_name":"IT Admin"}'::jsonb
+    '{"provider":"email","providers":["email"],"platform_role":"it_admin"}'::jsonb,
+    '{"full_name":"SSTiPOS IT Admin"}'::jsonb
+  ),
+  (
+    '00000000-0000-0000-0000-000000000902',
+    '00000000-0000-0000-0000-000000000000',
+    'authenticated',
+    'authenticated',
+    'itsupport@sstipos.local',
+    crypt('182536', gen_salt('bf')),
+    now(),
+    now(),
+    now(),
+    '{"provider":"email","providers":["email"],"platform_role":"it_support"}'::jsonb,
+    '{"full_name":"SSTiPOS IT Support"}'::jsonb
   )
-on conflict (id) do nothing;
+on conflict (id) do update
+set
+  email = excluded.email,
+  encrypted_password = excluded.encrypted_password,
+  updated_at = now(),
+  raw_app_meta_data = excluded.raw_app_meta_data,
+  raw_user_meta_data = excluded.raw_user_meta_data;
 
 insert into users_profiles (id, email, full_name, platform_role, pin_hash, is_active)
 values
   ('00000000-0000-0000-0000-000000000101', 'owner@noodle.local', 'เจ้าของร้าน', 'tenant_user', '$2b$10$hlUTBQXtPd.rLARdgqwdCevHf.H5lCFdkyEWgBuMp14bFXpT6rdPa', true),
   ('00000000-0000-0000-0000-000000000102', 'manager@noodle.local', 'ผู้จัดการร้าน', 'tenant_user', '$2b$10$xQcyWHhdQv9np9kafFlupedqZlEQQXVzOmXhSJxd/Hqw7ZWQ6xeO.', true),
   ('00000000-0000-0000-0000-000000000103', 'staff@noodle.local', 'พนักงาน', 'tenant_user', '$2b$10$KKtFBMTXToXbAoykqHz6uOyMTVchHrBwVUt4CUEJF6WkVQffUM482', true),
-  ('00000000-0000-0000-0000-000000000901', 'itadmin@platform.local', 'IT Admin', 'it_admin', null, true)
+  ('00000000-0000-0000-0000-000000000901', 'itadmin@sstipos.local', 'SSTiPOS IT Admin', 'it_admin', null, true),
+  ('00000000-0000-0000-0000-000000000902', 'itsupport@sstipos.local', 'SSTiPOS IT Support', 'it_support', null, true)
 on conflict (id) do update
 set
   email = excluded.email,

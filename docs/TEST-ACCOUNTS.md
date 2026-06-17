@@ -48,6 +48,15 @@ Legacy noodle users:
 - `manager@noodle.local` / `Manager#1234`
 - `staff@noodle.local` / `Staff#1234`
 
+## IT Support Console Accounts
+
+Use these local/demo accounts at `/it-admin/login`:
+
+| Email | Password | Platform role |
+| --- | --- | --- |
+| `itadmin@sstipos.local` | `182536` | `it_admin` |
+| `itsupport@sstipos.local` | `182536` | `it_support` |
+
 ## Seed Source
 
 All accounts and store codes above are defined in:
