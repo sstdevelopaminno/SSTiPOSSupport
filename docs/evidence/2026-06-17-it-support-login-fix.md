@@ -61,7 +61,30 @@ Follow-up attempt:
 - Supabase Management API key retrieval for project `deejlitaivfnsbwqdugy` returned HTTP 403 for the current account/token.
 - Pulling/copying production secrets from another Vercel project was not performed because it requires explicit authorization for that source project.
 
+Final production update:
+
+- Explicit user approval was granted to copy production Supabase secrets from Vercel project `sstipos`.
+- Confirmed source `NEXT_PUBLIC_SUPABASE_URL` matched `https://deejlitaivfnsbwqdugy.supabase.co`.
+- Copied the required production keys into Vercel project `ss-ti-pos-support-backoffice-web` without printing secret values:
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `SUPABASE_PRIMARY_ANON_KEY`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `SUPABASE_PRIMARY_SERVICE_ROLE_KEY`
+- Deployed production with Vercel:
+  - Deployment URL: `https://ss-ti-pos-support-backoffice-h1uubx2ws.vercel.app`
+  - Production alias: `https://ss-ti-pos-support-backoffice-web.vercel.app`
+
+Post-deploy verification:
+
+| Email | API result | Redirect | Role |
+| --- | --- | --- | --- |
+| `itadmin@sstipos.local` | pass | `/it-admin` | `it_admin` |
+| `itsupport@sstipos.local` | pass | `/it-admin` | `it_support` |
+
+Vercel error log scan for the last 10 minutes returned no errors.
+
 ## Validation Commands
 
 - `corepack pnpm --filter backoffice-web exec vitest run tests/integration/it-admin-auth-login.integration.test.ts`
 - `corepack pnpm --filter backoffice-web typecheck`
+- `vercel --prod --yes`
