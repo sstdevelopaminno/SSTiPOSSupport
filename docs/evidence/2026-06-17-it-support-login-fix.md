@@ -43,15 +43,25 @@ The production Vercel project was relinked locally to:
 - Project: `ss-ti-pos-support-backoffice-web`
 - Production alias: `https://ss-ti-pos-support-backoffice-web.vercel.app`
 
-`vercel env ls` returned no configured environment variables for this project. The login API therefore still requires these production env vars before deployment can fully pass runtime login verification:
+Initial `vercel env ls` returned no configured environment variables for this project. The login API therefore returned HTTP 500 because the runtime could not initialize the Supabase clients.
 
-- `NEXT_PUBLIC_SUPABASE_URL` or `SUPABASE_PRIMARY_URL`
+Configured these non-secret production env vars on Vercel:
+
+- `APP_SURFACE=it_admin`
+- `NEXT_PUBLIC_SUPABASE_URL=https://deejlitaivfnsbwqdugy.supabase.co`
+- `SUPABASE_PRIMARY_URL=https://deejlitaivfnsbwqdugy.supabase.co`
+
+The login API still requires these production secret/key env vars before deployment can fully pass runtime login verification:
+
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` or `SUPABASE_PRIMARY_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_PRIMARY_SERVICE_ROLE_KEY`
-- `APP_SURFACE=it_admin`
+
+Follow-up attempt:
+
+- Supabase Management API key retrieval for project `deejlitaivfnsbwqdugy` returned HTTP 403 for the current account/token.
+- Pulling/copying production secrets from another Vercel project was not performed because it requires explicit authorization for that source project.
 
 ## Validation Commands
 
 - `corepack pnpm --filter backoffice-web exec vitest run tests/integration/it-admin-auth-login.integration.test.ts`
 - `corepack pnpm --filter backoffice-web typecheck`
-
