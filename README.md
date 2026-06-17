@@ -352,6 +352,12 @@ No Vercel deploy should be run for this planning/audit pass.
 - Updated `PwaBootstrap` to delete Cache Storage after unregistering any existing service workers.
 - Added `no-store` headers for `/sw.js` so browsers fetch the cleanup worker instead of reusing the old POS cache.
 - This is specific to the Support project; POS PWA/offline details can be revisited later in the POS repo.
-- Hardening follow-up: Support no longer advertises the PWA manifest/apple web app metadata, the file-based `app/manifest.ts` route was removed from this Support repo, and Support entry responses now send `Clear-Site-Data: "cache", "storage"` plus no-store cache headers so old POS Preview browser state is cleared when the Support domain is opened.
+- Hardening follow-up: Support no longer advertises the PWA manifest/apple web app metadata, the file-based `app/manifest.ts` route was removed from this Support repo, and Support entry responses use no-store cache headers. `Clear-Site-Data` is intentionally limited to `/sw.js` so Chrome does not clear storage during every login page navigation.
 - Production redeploy after removing `app/manifest.ts`: `https://sstipos-support-a9k14hunr-sstdevelopaminnos-projects.vercel.app`, aliased to `https://sstipos-support.vercel.app`.
-- Post-deploy verification: `/` redirects to `/it-admin/login` with `Clear-Site-Data`, `/it-admin/login` returns `200` without a manifest link, `/sw.js` returns the cleanup worker with no-store headers, and `/manifest.webmanifest` returns `404`.
+- Post-deploy verification: `/` redirects to `/it-admin/login` with no-store cache headers, `/it-admin/login` returns `200` without a manifest link, `/sw.js` returns the cleanup worker with no-store headers, and `/manifest.webmanifest` returns `404`.
+
+### 2026-06-17 Support login navigation fix
+- Root cause investigated for Chrome opening `about:blank` or hanging when launching the Support domain from Vercel: Support entry redirects and `/it-admin/login` were sending `Clear-Site-Data: "cache", "storage"` on every navigation.
+- Limited `Clear-Site-Data` to `/sw.js` only. Root redirects, `/it-admin/login`, and blocked POS route redirects now send no-store cache headers without clearing origin storage during page load.
+- Changed files: `apps/backoffice-web/next.config.ts`, `apps/backoffice-web/src/proxy.ts`, and this README.
+- Verification before deploy: `npm run typecheck` passed, targeted ESLint for `next.config.ts` and `src/proxy.ts` passed, and `npm run build` passed.

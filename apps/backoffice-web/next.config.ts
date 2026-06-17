@@ -14,6 +14,10 @@ const supportCleanupHeaders = [
   { key: "Cache-Control", value: "no-store, no-cache, must-revalidate, proxy-revalidate" }
 ];
 
+const supportNoStoreHeaders = [
+  { key: "Cache-Control", value: "no-store, no-cache, must-revalidate, proxy-revalidate" }
+];
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   distDir: process.env.NEXT_DIST_DIR ?? ".next",
@@ -43,15 +47,15 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/",
-        headers: [...securityHeaders, ...supportCleanupHeaders]
+        headers: [...securityHeaders, ...supportNoStoreHeaders]
       },
       {
         source: "/it-admin/login",
-        headers: [...securityHeaders, ...supportCleanupHeaders]
+        headers: [...securityHeaders, ...supportNoStoreHeaders]
       },
       {
         source: "/login/store",
-        headers: [...securityHeaders, ...supportCleanupHeaders]
+        headers: [...securityHeaders, ...supportNoStoreHeaders]
       },
       {
         source: "/(.*)",
