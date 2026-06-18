@@ -372,3 +372,42 @@ Commands/results:
 ### Remaining Risk
 
 - Browser verification should switch the language selector between Thai and English on `/tenants` to confirm all visible tenant-table text changes as expected.
+
+---
+
+## GitHub Push and Vercel Production Deploy - 2026-06-18
+
+### Request
+
+Push the current code updates to GitHub and run Vercel.
+
+### GitHub Result
+
+- Branch: `codex/it-admin-package-contracts`
+- Commit pushed: `be7f0c2 Update IT support tenant UI`
+- Remote: `https://github.com/sstdevelopaminno/SSTiPOSSupport.git`
+
+### Vercel Result
+
+- Command: `vercel --prod --yes`
+- Linked Vercel project: `ss-ti-pos-support-backoffice-web`
+- Production deployment URL: `https://ss-ti-pos-support-backoffice-hgx74u533.vercel.app`
+- Production alias returned by CLI: `https://ss-ti-pos-support-backoffice-web.vercel.app`
+- Inspect URL: `https://vercel.com/sstdevelopaminnos-projects/ss-ti-pos-support-backoffice-web/EpoPQn2jvfmrFvQEUSp8y2MsAdgY`
+- Build result: passed.
+- Build notes:
+  - Next.js 16.2.6 detected.
+  - Production build compiled successfully.
+  - TypeScript completed successfully during Vercel build.
+  - 143 static pages generated.
+
+### HTTP Checks
+
+- `https://ss-ti-pos-support-backoffice-web.vercel.app/tenants`: returned `307 Temporary Redirect` to `/it-admin/login?state=session_expired`, expected for unauthenticated access.
+- `https://ss-ti-pos-support-backoffice-hgx74u533.vercel.app/tenants`: returned `401 Unauthorized` from Vercel protection/SSO for the deployment URL.
+- `https://sstipos-support.vercel.app/tenants`: returned `404 DEPLOYMENT_NOT_FOUND` during this check, so that legacy/documented alias is not currently resolving to the linked Vercel project used by this checkout.
+
+### Remaining Risk
+
+- Confirm in the Vercel dashboard whether the intended production domain should be `ss-ti-pos-support-backoffice-web.vercel.app` or the older documented `sstipos-support.vercel.app`.
+- If `sstipos-support.vercel.app` is still the intended public domain, it needs to be reattached/aliased to the active Vercel project before treating that domain as production.
