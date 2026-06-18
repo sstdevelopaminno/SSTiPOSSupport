@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { LanguageSwitcher } from "@/components/language/language-switcher";
 import type { Language } from "@/lib/i18n";
@@ -166,13 +166,27 @@ function NavIcon({ permission }: { permission: string }) {
   }
 }
 
-function getPageTitle(pathname: string, nav: NavItem[]) {
-  const active = nav
+function resolveNavHref(pathname: string, nav: NavItem[]) {
+  const hash = typeof window === "undefined" ? "" : window.location.hash;
+  const currentHref = `${pathname}${hash}`;
+  const exactMatch = nav.find((item) => item.href === currentHref);
+  if (exactMatch) return exactMatch.href;
+
+  const pathOnlyMatch = nav.find((item) => !item.href.includes("#") && item.href === pathname);
+  if (pathOnlyMatch) return pathOnlyMatch.href;
+
+  const nestedMatch = nav
     .filter((item) => {
       const path = item.href.split("#")[0] || item.href;
-      return path === "/it-admin" ? pathname === path : pathname.startsWith(path);
+      return !item.href.includes("#") && path !== "/it-admin" && pathname.startsWith(`${path}/`);
     })
     .sort((a, b) => b.href.length - a.href.length)[0];
+
+  return nestedMatch?.href ?? null;
+}
+
+function getPageTitle(nav: NavItem[], activeHref: string | null) {
+  const active = nav.find((item) => item.href === activeHref);
 
   return active?.label ?? "Support Console";
 }
@@ -180,7 +194,6 @@ function getPageTitle(pathname: string, nav: NavItem[]) {
 export function ItSupportShell({
   children,
   nav,
-  roleLabel,
   language,
   languageLabel,
   thaiLabel,
@@ -190,12 +203,34 @@ export function ItSupportShell({
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarControlsRevealed, setSidebarControlsRevealed] = useState(false);
+  const [activeNavHref, setActiveNavHref] = useState<string | null>(null);
   const [logoutBusy, setLogoutBusy] = useState(false);
-  const pageTitle = useMemo(() => getPageTitle(pathname, nav), [pathname, nav]);
+  const revealTimerRef = useRef<number | null>(null);
+  const pageTitle = useMemo(() => getPageTitle(nav, activeNavHref), [activeNavHref, nav]);
   const showPackageBackLink = /^\/it-admin\/packages\/[^/]+/.test(pathname);
+  const hideTopbar = pathname === "/tenants";
 
   useEffect(() => {
     setSidebarCollapsed(window.localStorage.getItem(sidebarCollapsedStorageKey) === "true");
+  }, []);
+
+  useEffect(() => {
+    function syncActiveNav() {
+      setActiveNavHref(resolveNavHref(pathname, nav));
+    }
+
+    syncActiveNav();
+    window.addEventListener("hashchange", syncActiveNav);
+    return () => window.removeEventListener("hashchange", syncActiveNav);
+  }, [pathname, nav]);
+
+  useEffect(() => {
+    return () => {
+      if (revealTimerRef.current) {
+        window.clearTimeout(revealTimerRef.current);
+      }
+    };
   }, []);
 
   function toggleSidebarCollapsed() {
@@ -204,6 +239,28 @@ export function ItSupportShell({
       window.localStorage.setItem(sidebarCollapsedStorageKey, String(next));
       return next;
     });
+  }
+
+  function revealSidebarControls(autoHide = false) {
+    setSidebarControlsRevealed(true);
+    if (revealTimerRef.current) {
+      window.clearTimeout(revealTimerRef.current);
+      revealTimerRef.current = null;
+    }
+    if (autoHide) {
+      revealTimerRef.current = window.setTimeout(() => {
+        setSidebarControlsRevealed(false);
+        revealTimerRef.current = null;
+      }, 2200);
+    }
+  }
+
+  function hideSidebarControls() {
+    if (revealTimerRef.current) {
+      window.clearTimeout(revealTimerRef.current);
+      revealTimerRef.current = null;
+    }
+    setSidebarControlsRevealed(false);
   }
 
   async function logout() {
@@ -218,12 +275,19 @@ export function ItSupportShell({
   }
 
   const sidebar = (
-    <aside className="it-support-sidebar" aria-label="SSTiPOS Support navigation">
+    <aside
+      className={sidebarControlsRevealed ? "it-support-sidebar is-controls-revealed" : "it-support-sidebar"}
+      aria-label="SSTiPOS Support navigation"
+      onPointerEnter={() => revealSidebarControls()}
+      onPointerLeave={hideSidebarControls}
+      onPointerDown={() => revealSidebarControls(true)}
+      onFocus={() => revealSidebarControls()}
+      onBlur={hideSidebarControls}
+    >
       <div className="it-support-sidebar__brand">
         <div className="it-support-sidebar__logo">
           <Image src={logoSrc} alt="SST Innovation" width={logoWidth} height={logoHeight} style={{ height: "auto" }} priority />
         </div>
-        <span className="it-support-role-badge">{roleLabel}</span>
         <button
           type="button"
           className="it-support-sidebar__collapse"
@@ -242,15 +306,17 @@ export function ItSupportShell({
 
       <nav className="it-support-sidebar__nav">
         {nav.map((item) => {
-          const path = item.href.split("#")[0] || item.href;
-          const active = path === "/it-admin" ? pathname === path : pathname.startsWith(path);
+          const active = item.href === activeNavHref;
           return (
             <Link
               key={`${item.href}-${item.label}`}
               className={active ? "it-support-nav-item is-active" : "it-support-nav-item"}
               href={item.href}
               title={item.label}
-              onClick={() => setDrawerOpen(false)}
+              onClick={() => {
+                setActiveNavHref(item.href);
+                setDrawerOpen(false);
+              }}
             >
               <span className="it-support-nav-item__icon" aria-hidden="true">
                 <NavIcon permission={item.permission} />
@@ -292,7 +358,8 @@ export function ItSupportShell({
       </div>
 
       <main className="it-support-main">
-        <header className="it-support-topbar">
+        {hideTopbar ? null : (
+          <header className="it-support-topbar">
           <div className="it-support-topbar__title">
             <button
               type="button"
@@ -317,7 +384,21 @@ export function ItSupportShell({
               </Link>
             ) : null}
           </div>
-        </header>
+          </header>
+        )}
+
+        {hideTopbar ? (
+          <button
+            type="button"
+            className="it-support-menu-button it-support-menu-button--inline"
+            aria-label="Open menu"
+            onClick={() => setDrawerOpen(true)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+        ) : null}
 
         <div className="it-support-content">{children}</div>
       </main>

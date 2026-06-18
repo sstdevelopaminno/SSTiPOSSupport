@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 
 type TenantItem = {
@@ -19,51 +19,74 @@ type TenantResponse = {
   error: { code: string; message: string } | null;
 };
 
-export function TenantIndexConsole() {
+export type TenantIndexLabels = {
+  title: string;
+  desc: string;
+  tenant: string;
+  status: string;
+  branches: string;
+  activeSessions: string;
+  actions: string;
+  active: string;
+  inactive: string;
+  manage: string;
+  devices: string;
+  sessions: string;
+  refresh: string;
+  loading: string;
+  empty: string;
+  fetchFailed: string;
+};
+
+type TenantIndexConsoleProps = {
+  labels: TenantIndexLabels;
+};
+
+export function TenantIndexConsole({ labels }: TenantIndexConsoleProps) {
   const [items, setItems] = useState<TenantItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const response = await fetch("/api/it-admin/admin/tenants", { cache: "no-store" });
       const payload = (await response.json()) as TenantResponse;
       if (!response.ok || payload.error) {
-        throw new Error(payload.error?.message ?? "Failed to fetch tenants");
+        throw new Error(payload.error?.message ?? labels.fetchFailed);
       }
       setItems(payload.data.tenants ?? []);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Failed to fetch tenants");
+      setError(loadError instanceof Error ? loadError.message : labels.fetchFailed);
     } finally {
       setLoading(false);
     }
-  }
+  }, [labels.fetchFailed]);
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [load]);
 
   return (
     <section className="surface" style={{ display: "grid", gap: 10 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
-        <h2 style={{ margin: 0 }}>Tenants</h2>
+        <h2 style={{ margin: 0 }}>{labels.title}</h2>
         <button type="button" className="pos-monitor-btn pos-monitor-btn--primary" onClick={() => void load()} disabled={loading}>
-          {loading ? "Loading..." : "Refresh"}
+          {loading ? labels.loading : labels.refresh}
         </button>
       </div>
-      <p style={{ margin: 0, color: "#64748b" }}>Platform admin can drill down to branches, roles, devices, sessions, shifts, features, and logs.</p>
+      <p style={{ margin: 0, color: "#64748b" }}>{labels.desc}</p>
       {error ? <p style={{ margin: 0, color: "#b91c1c" }}>{error}</p> : null}
       <div style={{ overflowX: "auto" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr>
-              <th style={thStyle}>Tenant</th>
-              <th style={thStyle}>Status</th>
-              <th style={thStyle}>Branches</th>
-              <th style={thStyle}>Active sessions</th>
-              <th style={thStyle}>Actions</th>
+              <th style={thStyle}>{labels.tenant}</th>
+              <th style={thStyle}>{labels.status}</th>
+              <th style={thStyle}>{labels.branches}</th>
+              <th style={thStyle}>{labels.activeSessions}</th>
+              <th style={thStyle}>{labels.actions}</th>
             </tr>
           </thead>
           <tbody>
@@ -73,19 +96,19 @@ export function TenantIndexConsole() {
                   <div style={{ fontWeight: 700 }}>{item.name}</div>
                   <small style={{ color: "#64748b" }}>{item.code}</small>
                 </td>
-                <td style={tdStyle}>{item.is_active ? "active" : "inactive"}</td>
+                <td style={tdStyle}>{item.is_active ? labels.active : labels.inactive}</td>
                 <td style={tdStyle}>{item.branch_count}</td>
                 <td style={tdStyle}>{item.active_session_count}</td>
                 <td style={tdStyle}>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                     <Link href={`/tenants/${item.id}/branches`} style={pillStyle}>
-                      Manage
+                      {labels.manage}
                     </Link>
                     <Link href={`/tenants/${item.id}/devices`} style={pillStyle}>
-                      Devices
+                      {labels.devices}
                     </Link>
                     <Link href={`/tenants/${item.id}/sessions`} style={pillStyle}>
-                      Sessions
+                      {labels.sessions}
                     </Link>
                   </div>
                 </td>
@@ -94,7 +117,7 @@ export function TenantIndexConsole() {
             {items.length === 0 ? (
               <tr>
                 <td style={{ ...tdStyle, textAlign: "center", color: "#64748b" }} colSpan={5}>
-                  No tenants found.
+                  {labels.empty}
                 </td>
               </tr>
             ) : null}

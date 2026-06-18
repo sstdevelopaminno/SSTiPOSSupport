@@ -103,6 +103,23 @@ a {
   background: #ffffff;
   color: #0e6ea8;
   cursor: pointer;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.16s ease, transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.it-support-sidebar:hover .it-support-sidebar__collapse,
+.it-support-sidebar:focus-within .it-support-sidebar__collapse,
+.it-support-sidebar.is-controls-revealed .it-support-sidebar__collapse {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.it-support-sidebar__collapse:hover,
+.it-support-sidebar__collapse:focus-visible {
+  border-color: #8fd1f2;
+  box-shadow: 0 8px 22px rgba(25, 120, 189, 0.16);
+  outline: none;
 }
 
 .it-support-sidebar__collapse svg {
@@ -150,6 +167,38 @@ a {
   gap: 6px;
   overflow: auto;
   padding-right: 4px;
+  scrollbar-width: none;
+}
+
+.it-support-sidebar__nav::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.it-support-sidebar:hover .it-support-sidebar__nav,
+.it-support-sidebar:focus-within .it-support-sidebar__nav,
+.it-support-sidebar.is-controls-revealed .it-support-sidebar__nav {
+  scrollbar-width: thin;
+  scrollbar-color: #8b8b8b transparent;
+}
+
+.it-support-sidebar:hover .it-support-sidebar__nav::-webkit-scrollbar,
+.it-support-sidebar:focus-within .it-support-sidebar__nav::-webkit-scrollbar,
+.it-support-sidebar.is-controls-revealed .it-support-sidebar__nav::-webkit-scrollbar {
+  width: 8px;
+}
+
+.it-support-sidebar:hover .it-support-sidebar__nav::-webkit-scrollbar-track,
+.it-support-sidebar:focus-within .it-support-sidebar__nav::-webkit-scrollbar-track,
+.it-support-sidebar.is-controls-revealed .it-support-sidebar__nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.it-support-sidebar:hover .it-support-sidebar__nav::-webkit-scrollbar-thumb,
+.it-support-sidebar:focus-within .it-support-sidebar__nav::-webkit-scrollbar-thumb,
+.it-support-sidebar.is-controls-revealed .it-support-sidebar__nav::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #8b8b8b;
 }
 
 .it-support-nav-item {
@@ -166,8 +215,10 @@ a {
 }
 
 .it-support-nav-item:hover {
-  border-color: #d6edf9;
-  background: #f5fbff;
+  color: #0d5f95;
+}
+
+.it-support-nav-item:hover .it-support-nav-item__icon {
   color: #0d5f95;
 }
 
@@ -344,6 +395,10 @@ a {
   height: 2px;
   border-radius: 999px;
   background: #0e6ea8;
+}
+
+.it-support-menu-button--inline {
+  margin-bottom: 12px;
 }
 
 .it-support-content {

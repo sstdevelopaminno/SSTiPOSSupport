@@ -307,6 +307,19 @@ Next implementation should start with P1 guardrails:
 
 No Vercel deploy should be run for this planning/audit pass.
 
+## Project Structure Audit Update (2026-06-18)
+
+The latest repository/documentation/code structure re-check is documented in `docs/PROJECT-STRUCTURE-AUDIT-2026-06-18.md`.
+
+Current verification from this audit:
+
+- `npm run typecheck` passed.
+- `npm run lint` passed.
+- `npm test` passed: 24 files / 59 tests.
+- `npm run build` was inconclusive locally because it timed out twice without returned build output.
+
+Next development should continue with IT Admin P1 guardrails: tenant readiness data, feature override branch-scope validation, user role branch/user validation, and focused IT Admin tests.
+
 ### 2026-06-14 SSTiPOS Support split status
 - SSTiPOS Support is developed in the separate `SSTiPOSSupport` repo/branch while POS remains in `POS-Preview`.
 - Both POS and SSTiPOS Support use the same existing Supabase project/database; do not create a new Supabase project.
