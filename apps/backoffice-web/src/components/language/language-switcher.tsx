@@ -24,7 +24,7 @@ export function LanguageSwitcher({ currentLanguage, label, thaiLabel, englishLab
 
   return (
     <label style={{ display: "inline-flex", alignItems: "center", gap: compact ? 6 : 8 }}>
-      <span style={{ fontSize: compact ? 11 : 14, color: "var(--muted)" }}>{label}</span>
+      {label ? <span style={{ fontSize: compact ? 11 : 14, color: "var(--muted)" }}>{label}</span> : null}
       <select
         value={lang}
         onChange={(event) => {

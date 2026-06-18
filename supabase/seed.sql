@@ -1,17 +1,161 @@
 -- Demo seed for noodle shop tenant
--- Run after migrations: 202605170001_init_core.sql and 202605170002_rls_policies.sql
+-- Run after all migrations so package feature-gate tables are available.
 
-insert into subscription_packages (id, code, name, monthly_price, max_branches, is_active)
+insert into subscription_packages (
+  id,
+  code,
+  name,
+  monthly_price,
+  max_branches,
+  is_active,
+  status,
+  max_devices,
+  max_users,
+  metadata
+)
 values
-  ('10000000-0000-0000-0000-000000000001', 'starter', 'Starter MVP', 990, 3, true)
-on conflict (id) do nothing;
+  ('10000000-0000-0000-0000-000000000002', 'launch_lite', 'Launch Lite', 199, 1, true, 'active', 1, 2, '{"source":"it_admin_standard_seed","display_order":1}'::jsonb),
+  ('10000000-0000-0000-0000-000000000001', 'starter', 'Starter', 399, 1, true, 'active', 1, 2, '{"source":"it_admin_standard_seed","display_order":2}'::jsonb),
+  ('10000000-0000-0000-0000-000000000003', 'standard', 'Standard', 699, 2, true, 'active', 2, 5, '{"source":"it_admin_standard_seed","display_order":3}'::jsonb),
+  ('10000000-0000-0000-0000-000000000004', 'pro', 'Pro', 1099, 3, true, 'active', 5, 10, '{"source":"it_admin_standard_seed","display_order":4}'::jsonb),
+  ('10000000-0000-0000-0000-000000000005', 'business', 'Business', 1990, 10, true, 'active', 20, 50, '{"source":"it_admin_standard_seed","display_order":5}'::jsonb)
+on conflict (code) do update
+set
+  name = excluded.name,
+  monthly_price = excluded.monthly_price,
+  max_branches = excluded.max_branches,
+  is_active = excluded.is_active,
+  status = excluded.status,
+  max_devices = excluded.max_devices,
+  max_users = excluded.max_users,
+  metadata = excluded.metadata;
+
+insert into package_feature_catalog (
+  code,
+  name,
+  description,
+  default_monthly_price,
+  default_yearly_price,
+  default_perpetual_price,
+  included_by_default,
+  priced_per_branch,
+  is_active
+)
+values
+  ('core_pos_sales', 'Core POS Sales', 'Allow POS sales, order, payment, and product lookup APIs.', 0, 0, 0, true, false, true),
+  ('pin_login', 'PIN Login', 'Allow PIN-based POS login verification.', 0, 0, 0, true, true, true),
+  ('qr_login', 'QR Login', 'Allow QR-based POS login verification.', 0, 0, 0, false, true, true),
+  ('staff_card_login', 'Staff Card Login', 'Allow staff-card or employee-name POS verification.', 0, 0, 0, false, true, true),
+  ('attendance_tracking', 'Attendance Tracking', 'Allow attendance status, check-in, and check-out APIs.', 0, 0, 0, false, true, true),
+  ('user_management', 'User Management', 'Allow tenant user and role assignment workflows.', 0, 0, 0, false, false, true),
+  ('device_management', 'Device Management', 'Allow POS device management workflows.', 0, 0, 0, false, true, true),
+  ('branch_management', 'Branch Management', 'Allow branch provisioning workflows.', 0, 0, 0, false, false, true),
+  ('table_management', 'Table Management', 'Allow dine-in table and floor operations.', 490, 5880, 8900, false, true, true),
+  ('qr_table_ordering', 'QR Table Ordering', 'Allow customer QR table ordering.', 690, 8280, 14900, false, true, true),
+  ('customer_facing_display', 'Customer Display', 'Allow customer-facing display screens.', 250, 3000, 4900, false, false, true),
+  ('transfer_slip_verification', 'Transfer Slip Verification', 'Allow bank-transfer slip verification workflows.', 390, 4680, 6900, false, true, true),
+  ('staff_qr_clockin', 'Staff QR Clock-in', 'Allow staff QR clock-in workflows.', 190, 2280, 3900, false, true, true),
+  ('advanced_sales_reports', 'Advanced Sales Reports', 'Allow advanced sales reporting views.', 790, 9480, 16900, false, false, true),
+  ('receipt_reprint_history', 'Receipt Reprint History', 'Allow receipt reprint history and audit lookup.', 290, 3480, 5900, false, true, true),
+  ('multi_terminal_sync', 'Multi Terminal Sync', 'Allow multiple POS terminals in the same branch.', 590, 7080, 12900, false, true, true),
+  ('offline_queue_resilience', 'Offline Queue Resilience', 'Allow offline queue and retry workflows.', 350, 4200, 6900, false, true, true),
+  ('desktop_app_runtime', 'Desktop App Runtime', 'Allow desktop online/offline runtime mode.', 450, 5400, 10900, false, false, true),
+  ('barcode_scanner_mode', 'Barcode Scanner Mode', 'Allow barcode scanner checkout mode.', 290, 3480, 5900, false, true, true),
+  ('kitchen_printing', 'Kitchen Printing', 'Allow kitchen ticket and printer station workflows.', 350, 4200, 6900, false, true, true),
+  ('mobile_qr_login', 'Mobile QR Login', 'Allow mobile QR login workflows with enrollment controls.', 0, 0, 0, false, true, true),
+  ('mobile_device_enrollment', 'Mobile Device Enrollment', 'Allow mobile device activation and enrollment.', 0, 0, 0, false, true, true),
+  ('mobile_slip_scan', 'Mobile Slip Scan', 'Allow mobile camera slip scan workflows.', 0, 0, 0, false, true, true)
+on conflict (code) do update
+set
+  name = excluded.name,
+  description = excluded.description,
+  default_monthly_price = excluded.default_monthly_price,
+  default_yearly_price = excluded.default_yearly_price,
+  default_perpetual_price = excluded.default_perpetual_price,
+  included_by_default = excluded.included_by_default,
+  priced_per_branch = excluded.priced_per_branch,
+  is_active = excluded.is_active;
+
+with package_feature_matrix(package_code, feature_code) as (
+  values
+    ('launch_lite', 'core_pos_sales'),
+    ('launch_lite', 'pin_login'),
+    ('starter', 'core_pos_sales'),
+    ('starter', 'pin_login'),
+    ('starter', 'attendance_tracking'),
+    ('standard', 'core_pos_sales'),
+    ('standard', 'pin_login'),
+    ('standard', 'qr_login'),
+    ('standard', 'staff_card_login'),
+    ('standard', 'attendance_tracking'),
+    ('standard', 'user_management'),
+    ('standard', 'device_management'),
+    ('standard', 'branch_management'),
+    ('standard', 'table_management'),
+    ('standard', 'transfer_slip_verification'),
+    ('standard', 'advanced_sales_reports'),
+    ('standard', 'receipt_reprint_history'),
+    ('pro', 'core_pos_sales'),
+    ('pro', 'pin_login'),
+    ('pro', 'qr_login'),
+    ('pro', 'staff_card_login'),
+    ('pro', 'attendance_tracking'),
+    ('pro', 'user_management'),
+    ('pro', 'device_management'),
+    ('pro', 'branch_management'),
+    ('pro', 'table_management'),
+    ('pro', 'transfer_slip_verification'),
+    ('pro', 'advanced_sales_reports'),
+    ('pro', 'receipt_reprint_history'),
+    ('pro', 'qr_table_ordering'),
+    ('pro', 'customer_facing_display'),
+    ('pro', 'staff_qr_clockin'),
+    ('pro', 'multi_terminal_sync'),
+    ('pro', 'offline_queue_resilience'),
+    ('pro', 'barcode_scanner_mode'),
+    ('pro', 'kitchen_printing'),
+    ('pro', 'mobile_qr_login'),
+    ('pro', 'mobile_device_enrollment'),
+    ('pro', 'mobile_slip_scan'),
+    ('business', 'core_pos_sales'),
+    ('business', 'pin_login'),
+    ('business', 'qr_login'),
+    ('business', 'staff_card_login'),
+    ('business', 'attendance_tracking'),
+    ('business', 'user_management'),
+    ('business', 'device_management'),
+    ('business', 'branch_management'),
+    ('business', 'table_management'),
+    ('business', 'transfer_slip_verification'),
+    ('business', 'advanced_sales_reports'),
+    ('business', 'receipt_reprint_history'),
+    ('business', 'qr_table_ordering'),
+    ('business', 'customer_facing_display'),
+    ('business', 'staff_qr_clockin'),
+    ('business', 'multi_terminal_sync'),
+    ('business', 'offline_queue_resilience'),
+    ('business', 'desktop_app_runtime'),
+    ('business', 'barcode_scanner_mode'),
+    ('business', 'kitchen_printing'),
+    ('business', 'mobile_qr_login'),
+    ('business', 'mobile_device_enrollment'),
+    ('business', 'mobile_slip_scan')
+)
+insert into subscription_package_features (package_id, feature_code, included)
+select p.id, m.feature_code, true
+from package_feature_matrix m
+join subscription_packages p on p.code = m.package_code
+on conflict (package_id, feature_code) do update
+set
+  included = excluded.included,
+  updated_at = now();
 
 -- Multi-tenant demo bundle for login/branch-scope development.
 -- Includes: 6 tenants, 12 branches, 18 users (owner/manager/staff), 30 role mappings.
 insert into tenants (id, code, name, owner_name, owner_phone, package_id, is_active)
 values
   ('00000000-0000-0000-0000-000000010001', 'CAF-TH-001', 'Cafe Atlas', 'Owner Cafe Atlas', '0811001001', '10000000-0000-0000-0000-000000000001', true),
-  ('00000000-0000-0000-0000-000000010002', 'BBQ-TH-002', 'Bangkok BBQ Lab', 'Owner BBQ Lab', '0811001002', '10000000-0000-0000-0000-000000000001', true),
+  ('00000000-0000-0000-0000-000000010002', 'BBQ-TH-002', 'Bangkok BBQ Lab', 'Owner BBQ Lab', '0811001002', '10000000-0000-0000-0000-000000000004', true),
   ('00000000-0000-0000-0000-000000010003', 'SFD-TH-003', 'Seafood Dock', 'Owner Seafood Dock', '0811001003', '10000000-0000-0000-0000-000000000001', true),
   ('00000000-0000-0000-0000-000000010004', 'BAK-TH-004', 'Baker Street 24', 'Owner Baker Street 24', '0811001004', '10000000-0000-0000-0000-000000000001', true),
   ('00000000-0000-0000-0000-000000010005', 'TEA-TH-005', 'Tea Time House', 'Owner Tea Time House', '0811001005', '10000000-0000-0000-0000-000000000001', true),
@@ -327,14 +471,102 @@ set
 
 insert into tenants (id, code, name, owner_name, owner_phone, package_id, is_active)
 values
-  ('00000000-0000-0000-0000-000000000001', 'NDL-TH-001', 'ก๋วยเตี๋ยวคุณหนึ่ง', 'คุณหนึ่ง', '0899990001', '10000000-0000-0000-0000-000000000001', true)
-on conflict (id) do nothing;
+  ('00000000-0000-0000-0000-000000000001', 'NDL-TH-001', 'ก๋วยเตี๋ยวคุณหนึ่ง', 'คุณหนึ่ง', '0899990001', '10000000-0000-0000-0000-000000000003', true)
+on conflict (id) do update
+set
+  code = excluded.code,
+  name = excluded.name,
+  owner_name = excluded.owner_name,
+  owner_phone = excluded.owner_phone,
+  package_id = excluded.package_id,
+  is_active = excluded.is_active;
 
 insert into branches (id, tenant_id, code, name, address, is_active)
 values
   ('00000000-0000-0000-0000-000000000011', '00000000-0000-0000-0000-000000000001', 'BKK-01', 'สาขาอารีย์', 'พหลโยธิน ซอย 7', true),
   ('00000000-0000-0000-0000-000000000012', '00000000-0000-0000-0000-000000000001', 'BKK-02', 'สาขาสะพานควาย', 'ประดิพัทธ์ 15', true)
 on conflict (id) do nothing;
+
+insert into tenant_subscription_contracts (
+  id,
+  tenant_id,
+  package_id,
+  contract_type,
+  billing_interval,
+  deployment_mode,
+  status,
+  branch_limit,
+  terminal_limit_per_branch,
+  amount_per_cycle,
+  currency,
+  auto_renew,
+  started_at,
+  ended_at,
+  max_branches,
+  max_devices,
+  max_users,
+  metadata
+)
+values
+  (
+    '80000000-0000-0000-0000-000000000001',
+    '00000000-0000-0000-0000-000000000001',
+    '10000000-0000-0000-0000-000000000003',
+    'saas',
+    'monthly',
+    'cloud',
+    'active',
+    2,
+    2,
+    699,
+    'THB',
+    true,
+    '2026-06-01 00:00:00+07',
+    null,
+    2,
+    2,
+    5,
+    '{"source":"demo_pos_package_binding","store_code":"NDL-TH-001"}'::jsonb
+  ),
+  (
+    '80000000-0000-0000-0000-000000000002',
+    '00000000-0000-0000-0000-000000010002',
+    '10000000-0000-0000-0000-000000000004',
+    'saas',
+    'monthly',
+    'cloud',
+    'active',
+    3,
+    5,
+    1099,
+    'THB',
+    true,
+    '2026-06-01 00:00:00+07',
+    null,
+    3,
+    5,
+    10,
+    '{"source":"demo_pos_package_binding","store_code":"BBQ-TH-002"}'::jsonb
+  )
+on conflict (id) do update
+set
+  tenant_id = excluded.tenant_id,
+  package_id = excluded.package_id,
+  contract_type = excluded.contract_type,
+  billing_interval = excluded.billing_interval,
+  deployment_mode = excluded.deployment_mode,
+  status = excluded.status,
+  branch_limit = excluded.branch_limit,
+  terminal_limit_per_branch = excluded.terminal_limit_per_branch,
+  amount_per_cycle = excluded.amount_per_cycle,
+  currency = excluded.currency,
+  auto_renew = excluded.auto_renew,
+  started_at = excluded.started_at,
+  ended_at = excluded.ended_at,
+  max_branches = excluded.max_branches,
+  max_devices = excluded.max_devices,
+  max_users = excluded.max_users,
+  metadata = excluded.metadata;
 
 -- Demo users in auth.users for local development
 insert into auth.users (

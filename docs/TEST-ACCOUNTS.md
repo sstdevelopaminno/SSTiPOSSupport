@@ -14,6 +14,15 @@ Use this document for local multi-tenant login testing on unified `backoffice-we
 | `TEA-TH-005` | Tea Time House |
 | `PIZ-TH-006` | Pizza Factory |
 
+## Demo Package Bindings
+
+| Store Code | IT Admin Package |
+| --- | --- |
+| `NDL-TH-001` | `standard` |
+| `BBQ-TH-002` | `pro` |
+
+These two stores have active demo contracts in `supabase/seed.sql` so IT Admin feature overrides affect POS feature gates for the same tenants.
+
 ## Branch Codes
 
 | Store Code | Branch Codes |

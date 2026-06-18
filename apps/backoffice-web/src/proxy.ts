@@ -70,6 +70,10 @@ function hasSupabaseSession(request: NextRequest): boolean {
   return request.cookies.getAll().some((cookie) => cookie.name.startsWith("sb-"));
 }
 
+function hasLocalDevAuthContext(): boolean {
+  return process.env.NODE_ENV !== "production" && Boolean(String(process.env.DEV_AUTH_USER_ID ?? "").trim());
+}
+
 function withSupportNoStoreHeaders(response: NextResponse): NextResponse {
   response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   return response;
@@ -97,7 +101,7 @@ export function proxy(request: NextRequest) {
         url.pathname = "/it-admin/login";
         return withSupportNoStoreHeaders(NextResponse.redirect(url));
       }
-      if (pathname === "/it-admin" && !hasSupabaseSession(request)) {
+      if (pathname === "/it-admin" && !hasSupabaseSession(request) && !hasLocalDevAuthContext()) {
         const url = request.nextUrl.clone();
         url.pathname = "/it-admin/login";
         url.search = "";

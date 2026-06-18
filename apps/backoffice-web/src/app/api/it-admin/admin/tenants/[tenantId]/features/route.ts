@@ -7,6 +7,10 @@ type FeaturePayload = {
   feature_code?: string;
   is_enabled?: boolean;
   branch_id?: string | null;
+  features?: Array<{
+    feature_code?: string;
+    is_enabled?: boolean;
+  }>;
 };
 
 type FeatureCatalogRow = {
@@ -159,20 +163,32 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
     const { tenantId: tenantIdParam } = await context.params;
     const tenantId = parseTenantParam(tenantIdParam);
     const body = (await req.json()) as FeaturePayload;
-    const featureCode = String(body.feature_code ?? "").trim();
     const branchId = typeof body.branch_id === "string" ? body.branch_id.trim() || null : null;
+    const featureUpdates = Array.isArray(body.features)
+      ? body.features.map((item) => ({
+          featureCode: String(item.feature_code ?? "").trim(),
+          isEnabled: item.is_enabled
+        }))
+      : [
+          {
+            featureCode: String(body.feature_code ?? "").trim(),
+            isEnabled: body.is_enabled
+          }
+        ];
 
-    if (!featureCode || typeof body.is_enabled !== "boolean") {
+    if (featureUpdates.length === 0 || featureUpdates.some((item) => !item.featureCode || typeof item.isEnabled !== "boolean")) {
       return fail("invalid_payload", "feature_code and is_enabled are required.", 422);
     }
 
-    let current: FeatureSubscriptionRow | null = null;
-    {
+    const updatedFeatures: FeatureSubscriptionRow[] = [];
+
+    for (const featureUpdate of featureUpdates) {
+      let current: FeatureSubscriptionRow | null = null;
       let query = supabase
         .from("tenant_feature_subscriptions")
         .select("id,tenant_id,branch_id,feature_code,is_enabled,source,updated_at")
         .eq("tenant_id", tenantId)
-        .eq("feature_code", featureCode)
+        .eq("feature_code", featureUpdate.featureCode)
         .limit(1);
 
       query = branchId ? query.eq("branch_id", branchId) : query.is("branch_id", null);
@@ -182,59 +198,64 @@ export async function PATCH(req: Request, context: { params: Promise<{ tenantId:
         throw new Error(error.message);
       }
       current = data ?? null;
-    }
 
-    const payload = {
-      tenant_id: tenantId,
-      branch_id: branchId,
-      feature_code: featureCode,
-      is_enabled: body.is_enabled,
-      source: "override"
-    };
+      const payload = {
+        tenant_id: tenantId,
+        branch_id: branchId,
+        feature_code: featureUpdate.featureCode,
+        is_enabled: featureUpdate.isEnabled,
+        source: "override"
+      };
 
-    let updated: FeatureSubscriptionRow;
-    if (current) {
-      const { data, error } = await supabase
-        .from("tenant_feature_subscriptions")
-        .update({ is_enabled: body.is_enabled, source: "override" })
-        .eq("id", current.id)
-        .select("id,tenant_id,branch_id,feature_code,is_enabled,source,updated_at")
-        .single<FeatureSubscriptionRow>();
+      let updated: FeatureSubscriptionRow;
+      if (current) {
+        const { data, error } = await supabase
+          .from("tenant_feature_subscriptions")
+          .update({ is_enabled: featureUpdate.isEnabled, source: "override" })
+          .eq("id", current.id)
+          .select("id,tenant_id,branch_id,feature_code,is_enabled,source,updated_at")
+          .single<FeatureSubscriptionRow>();
 
-      if (error) {
-        throw new Error(error.message);
+        if (error) {
+          throw new Error(error.message);
+        }
+        updated = data;
+      } else {
+        const { data, error } = await supabase
+          .from("tenant_feature_subscriptions")
+          .insert(payload)
+          .select("id,tenant_id,branch_id,feature_code,is_enabled,source,updated_at")
+          .single<FeatureSubscriptionRow>();
+
+        if (error) {
+          throw new Error(error.message);
+        }
+        updated = data;
       }
-      updated = data;
-    } else {
-      const { data, error } = await supabase
-        .from("tenant_feature_subscriptions")
-        .insert(payload)
-        .select("id,tenant_id,branch_id,feature_code,is_enabled,source,updated_at")
-        .single<FeatureSubscriptionRow>();
 
-      if (error) {
-        throw new Error(error.message);
-      }
-      updated = data;
+      updatedFeatures.push(updated);
+
+      await appendAuditLog({
+        tenantId,
+        branchId: branchId ?? undefined,
+        actorUserId: auth.userId,
+        actorRole: "it_admin",
+        action: featureUpdate.isEnabled ? "feature_enabled" : "feature_disabled",
+        targetTable: "tenant_feature_subscriptions",
+        targetId: updated.id,
+        beforeData: current ?? undefined,
+        afterData: updated,
+        ipAddress: requestMeta.ipAddress ?? undefined,
+        userAgent: requestMeta.userAgent ?? undefined
+      });
     }
 
     invalidateTenantFeatureGateCache(tenantId);
 
-    await appendAuditLog({
-      tenantId,
-      branchId: branchId ?? undefined,
-      actorUserId: auth.userId,
-      actorRole: "it_admin",
-      action: body.is_enabled ? "feature_enabled" : "feature_disabled",
-      targetTable: "tenant_feature_subscriptions",
-      targetId: updated.id,
-      beforeData: current ?? undefined,
-      afterData: updated,
-      ipAddress: requestMeta.ipAddress ?? undefined,
-      userAgent: requestMeta.userAgent ?? undefined
+    return ok({
+      feature: updatedFeatures[0] ?? null,
+      features: updatedFeatures
     });
-
-    return ok({ feature: updated });
   } catch (error) {
     return guardItAdminError(error);
   }
